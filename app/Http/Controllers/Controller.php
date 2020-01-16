@@ -46,22 +46,25 @@ class Controller extends BaseController
         $this->creaCliente();
         
         $status=$this->primerPago($nonce);
+        
         $this->guardarPago($status);
         
         return response()->json($status);
     } 
     public function simulaPagoRecurrente(Request $request)
     {
+        $valor = $request->input('valor', '10');
         $this->inicializa();
         $this->recuperaToken();// recupera el token del cliente de la DB
-        $status=$this->pagoRecurrente();
+        $status=$this->pagoRecurrente($valor);
+
         $this->guardarPago($status);
         return response()->json($status);
     } 
     // hace el pago sin intervencion del cliente
     public function pagoRecurrente($valor)
     {
-        $valor = $request->input('valor', '10');
+        
         
         $status = $this->pasarela->transaction()->sale([
             'amount' => $valor,
@@ -83,7 +86,8 @@ class Controller extends BaseController
             'paymentMethodNonce' => $nonce,
             'customerId' => $this->cliente,
             'options' => [
-            'storeInVaultOnSuccess' => true,
+                'submitForSettlement' => true,
+                'storeInVaultOnSuccess' => true,
             ]
         ]);
         return $status;
@@ -117,9 +121,10 @@ class Controller extends BaseController
     public function guardarPago($status){
          
         
-
-        $transaccionId=$status['transaction']['id'];// el id de la transaccion del pago vinculado a braintree
-        $success=$status['success'];// devuelve si se pago con exito , de no existir esta variable se considera que no se pudo completar el pago
+        $status=$status;
+        
+        $success=$status->success;// devuelve si se pago con exito , de no existir esta variable se considera que no se pudo completar el pago
+        $transaccionId=$status->transaction->id;// el id de la transaccion del pago vinculado a braintree
         // aqui
         // logica para guardar en la base de datos ...
     }
