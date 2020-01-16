@@ -12,3 +12,4 @@
 */
 
 Route::get('/', 'Controller@inicio');
+

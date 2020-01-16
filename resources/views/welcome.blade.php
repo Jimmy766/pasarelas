@@ -10,15 +10,32 @@
 
 <!-- Load the PayPal Checkout component. -->
 <script src="https://js.braintreegateway.com/web/3.57.0/js/paypal-checkout.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
       </head>
       <body>
         {{ $cliente ?? $cliente, '' }}
-        <div id="dropin-container"></div>
+        <br>
+        <br>
+        <input id="valor" type="number" name='valor' placeholder="Valor" />
+        <button id="enviar">Simular pago recurrente</button>
+        <br>
+        <br>
         <div id="paypal-button"></div>
         <script>
+          
+          $('#enviar').click(function(){
+            $.post('{{ route('api.otroPago') }}',{valor:$('#valor').val()}, function (response) {
+              if (response.success) {
+                alert('completado!');
+              } else {
+                alert('Failed!');
+              }
+            }, 'json');
+          });
           // Create a client.
 var client=braintree.client.create({
+  
   authorization: '{{$cliente ?? ''}}'
 }, function (clientErr, clientInstance) {
 
@@ -67,8 +84,18 @@ var client=braintree.client.create({
       },
 
       onAuthorize: function (data, actions) {
+        //console.log('checkout.js done', JSON.stringify(data, 0, 2));
         return paypalCheckoutInstance.tokenizePayment(data, function (err, payload) {
           // Submit `payload.nonce` to your server.
+          console.log('checkout.js done', JSON.stringify(payload, 0, 2));
+          $.post('{{ route('api.autoriza') }}', {payload}, function (response) {
+            if (response.success) {
+              alert('Autorizado!');
+            } else {
+              alert('Failed!');
+            }
+          }, 'json');
+          //-end onAuthorize
         });
       },
 
