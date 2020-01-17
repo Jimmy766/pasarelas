@@ -18,3 +18,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 Route::post('/autoriza', 'Controller@autoriza')->name('api.autoriza');
 Route::post('/otroPago', 'Controller@simulaPagoRecurrente')->name('api.otroPago');
+Route::get('/clientSecret', 'Controller@clientSecret')->name('api.clientSecret');
+Route::post('/autorizaStripe', 'Controller@autorizaStripe')->name('api.autorizaStripe');
+Route::post('/recurrentePagoStripe', 'Controller@recurrentePagoStripe')->name('api.recurrentePagoStripe');
+Route::post('/hooks', 'Controller@hooks')->name('api.hooks');
