@@ -28,9 +28,6 @@
         <br>
         <div id="card-element"></div>
         <button id="card-button">Stripe Inicial</button>
-		<br>
-		<br>
-        <button id="card-button3d">Stripe Inicial 3D Secure</button>
 
         <br>
         <br>
@@ -151,8 +148,6 @@ var cardElement = elements.create('card',{
 cardElement.mount('#card-element');
 //var cardholderName = document.getElementById('cardholder-name');
 var cardButton = document.getElementById('card-button');
-var cardButton3d = document.getElementById('card-button3d');
-var clientSecret3d = cardButton.dataset.secret;
 var clientSecret = cardButton.dataset.secret;
 var respuesta=null;
 fetch('/api/clientSecret').then(function (r) {
@@ -163,14 +158,7 @@ fetch('/api/clientSecret').then(function (r) {
 		console.log("Fetched PI: ", response);
 		
         });
-fetch('/api/clientSecret3d').then(function (r) {
-		return r.json();
-	}).then(function (response) {
-		respuesta = response;
-    clientSecret3d=respuesta.client_secret;
-		console.log("Fetched PI: ", response);
-		
-        });
+
 
 cardButton.addEventListener('click', function(ev) {
 
@@ -196,35 +184,6 @@ cardButton.addEventListener('click', function(ev) {
       $.post('{{ route('api.autorizaStripe') }}',{metodo:result["setupIntent"]["payment_method"]}, function (response) {
               console.log(response);
             }, 'json');
-
-      alert('todo bien!!');
-
-    }
-  });
-});
-
-cardButton3d.addEventListener('click', function(ev) {
-
-  stripe.confirmCardPayment(
-    clientSecret3d,
-    {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name: 'nombre de prueba',
-        },
-      },
-    }
-  ).then(function(result) {
-    console.log(result);
-    if (result.error) {
-      // Display error.message in your UI.
-      alert('algo paso!');
-
-    } else {
-      // The setup has succeeded. Display a success message.
-      console.log(result['paymentIntent']["payment_method"]);
-      
 
       alert('todo bien!!');
 

@@ -143,6 +143,19 @@ class Controller extends BaseController
         // se carga la credencial stripe
         Stripe::setApiKey('sk_test_b5uMiopp4vk8X1jxsLThvQGA007gdk00tt');
         $intent = SetupIntent::create(); // crea el token para el lado del cliente
+	   return response()->json($intent);
+    }
+	public function clientSecret3d()
+    {
+        // se carga la credencial stripe
+        Stripe::setApiKey('sk_test_b5uMiopp4vk8X1jxsLThvQGA007gdk00tt');
+       
+	   
+	    $intent = \Stripe\PaymentIntent::create([
+			'amount' => 1200,
+			'currency' => 'usd',
+			
+		]);
         return response()->json($intent);
     }
     // aitoriza y salva la tarjeta
@@ -176,10 +189,12 @@ class Controller extends BaseController
         // para propositos de prueba siempre cojemos el primer cliente .. 
         $cliente=Cliente::find(1);
         // recuperamos la tarjeta del cliente
+		
         $m=PaymentMethod::all([
             'customer' => $cliente->token,
             'type' => 'card',
           ]);
+		return response()->json($m);
         $metodo=$m['data'][0]->id;
         $monto=$request->input('monto');
 
@@ -199,6 +214,7 @@ class Controller extends BaseController
               'currency' => 'usd',
               'customer' => $cliente,
               'payment_method' => $metodo,
+			  
               'off_session' => true, // que no requiere intervencion del usuario
               'confirm' => true, // pues que si hombre , paga!
             ]);
