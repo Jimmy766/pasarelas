@@ -13,11 +13,10 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+
 Route::post('/autoriza', 'Controller@autoriza')->name('api.autoriza');
 Route::post('/otroPago', 'Controller@simulaPagoRecurrente')->name('api.otroPago');
+Route::post('/valida', 'Controller@validacion')->name('api.valida');
 Route::get('/clientSecret', 'Controller@clientSecret')->name('api.clientSecret');
 Route::get('/clientSecret3d', 'Controller@clientSecret3d')->name('api.clientSecret3d');
 Route::post('/autorizaStripe', 'Controller@autorizaStripe')->name('api.autorizaStripe');

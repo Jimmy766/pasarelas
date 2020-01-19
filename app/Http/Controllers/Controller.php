@@ -59,13 +59,18 @@ class Controller extends BaseController
     } 
     public function simulaPagoRecurrente(Request $request)
     {
+		
+		
         $valor = $request->input('valor', '10');
         $this->inicializa();
         $this->recuperaToken();// recupera el token del cliente de la DB
         $status=$this->pagoRecurrente($valor);
 
-        $this->guardarPago($status);
+        $this->guardarPago($status);// guarda id transaccion en la db
+		$valida=$this->validacion();// verifica el pago de braintree con el id de transaccion guardado en la db
+		if($valida==true)// si es un pago valido entonces sigue el flujo
         return response()->json($status);
+		return response()->json('error');
     } 
     // hace el pago sin intervencion del cliente
     public function pagoRecurrente($valor)
@@ -80,6 +85,9 @@ class Controller extends BaseController
                 'submitForSettlement' => True  
             ]
         ]);
+		
+		
+		
         return $status;
     }
 
@@ -104,7 +112,7 @@ class Controller extends BaseController
         $id=null; // id del cliente, esto es lo que se debe guardar en la DB
         $this->cliente = $this->pasarela->customer()->create([
             'firstName' => 'Mike',
-            'lastName' => 'Jones',
+            'lastName' => 'Jones', 
             'company' => 'Jones Co.',
             'email' => 'mike.jones@example.com',
             'phone' => '281.330.8004',
@@ -123,6 +131,21 @@ class Controller extends BaseController
         // por eso para propositos de prueba solo se usara el primer cliente
         $this->cliente=Cliente::find(1)->token;
     }
+	
+	// valida una transaccion con el id del cliente almacenado en la base de datos
+	public function validacion(){
+		$this->inicializa();
+		$client=Cliente::find(1);
+		$id=$client->transaccion."";
+		// si en la transaccion aparece el id del cliente que esta en la base de datos entonces la transaccion le pertenece
+		// y por tanto es valida
+		$transaction = $this->pasarela->transaction()->find("{$id}");
+		
+		if($client->token==$transaction->customer['id'])
+			return true;
+		return false;
+		//return response()->json($transaction);
+	}
     // obtiene id de la transaccion del pago y el estado del pago
     public function guardarPago($status){
          
@@ -133,6 +156,9 @@ class Controller extends BaseController
         $transaccionId=$status->transaction->id;// el id de la transaccion del pago vinculado a braintree
         // aqui
         // logica para guardar en la base de datos ...
+		$c=Cliente::find(1);
+        $c->transaccion=$transaccionId;
+        $c->save();
     }
 
     // stripe
@@ -234,15 +260,16 @@ class Controller extends BaseController
         $payload = json_decode($request->getContent(), true);
         $event = $payload;
 
-
         // Handle the event
         switch ($event['type']) {
             case 'payment_intent.succeeded':
                 $paymentIntent = $event['data']['object']; // contains a StripePaymentIntent
                 $monto=$paymentIntent['amount']; // obtiene el monto del pago pero en formato entero ej. 10$ es  1000
                 $transaccion=$paymentIntent['charges']['data'][0]['id']; // obtiene el id de la transaccion
+				
 				if($paymentIntent['customer']!=null)
 					return response()->json($paymentIntent);
+				
 				$cliente=\Stripe\Customer::create([
 				  'payment_method' => $paymentIntent['payment_method']
 				]);
@@ -262,9 +289,9 @@ class Controller extends BaseController
             // ... handle other event types
             default:
                 // Unexpected event type
-                http_response_code(400);
+                return response()->json($event);
                 exit();
         }
-        return response('nada');
+        return response()->json($event);
     }
 }
