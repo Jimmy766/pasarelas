@@ -194,7 +194,7 @@ class Controller extends BaseController
             'customer' => $cliente->token,
             'type' => 'card',
           ]);
-		return response()->json($m);
+		
         $metodo=$m['data'][0]->id;
         $monto=$request->input('monto');
 
