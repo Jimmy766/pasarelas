@@ -220,7 +220,7 @@ class Controller extends BaseController
             ]);
             
           } catch (\Stripe\Exception\CardException $e) {
-            return response()->json('se requiere autenticacion');
+            // si pasa algun error en el pago
             echo 'Error code is:' . $e->getError()->code;
             $payment_intent_id = $e->getError()->payment_intent->id;
             $payment_intent = \Stripe\PaymentIntent::retrieve($payment_intent_id);
@@ -241,23 +241,11 @@ class Controller extends BaseController
                 $paymentIntent = $event['data']['object']; // contains a StripePaymentIntent
                 $monto=$paymentIntent['amount']; // obtiene el monto del pago pero en formato entero ej. 10$ es  1000
                 $transaccion=$paymentIntent['charges']['data'][0]['id']; // obtiene el id de la transaccion
-				if($paymentIntent['customer']!=null)
-					return response()->json($paymentIntent);
-				$cliente=\Stripe\Customer::create([
-				  'payment_method' => $paymentIntent['payment_method']
-				]);
-				
-					
-				
-				$c=new Cliente();
-				$c->token=$cliente->id;
-				$c->save();
-                return response()->json($paymentIntent);
+                return response()->json($monto);
                 break;
-            case 'payment_intent.payment_failed':
+            case 'payment_method.failed':
                 $paymentIntent = $event['data']['object']; // contains a StripePaymentMethod
                 // algo fallo !!.. 
-				return response()->json('se requiere autenticacion!');
                 break;
             // ... handle other event types
             default:

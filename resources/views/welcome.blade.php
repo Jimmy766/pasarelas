@@ -27,7 +27,7 @@
         <br>
         <br>
         <div id="card-element"></div>
-        <button id="card-button">Stripe Inicial</button>
+        <button id="card-button" disabled>Stripe Inicial</button>
 		<br>
 		<br>
         <button id="card-button3d">Stripe Inicial 3D Secure</button>
@@ -205,17 +205,15 @@ cardButton.addEventListener('click', function(ev) {
 
 cardButton3d.addEventListener('click', function(ev) {
 
-  stripe.confirmCardPayment(
-    clientSecret3d,
-    {
-      payment_method: {
-        card: cardElement,
-        billing_details: {
-          name: 'nombre de prueba',
-        },
-      },
+  stripe.confirmCardPayment(clientSecret3d, {
+  payment_method: {
+    card: cardElement,
+    billing_details: {
+      name: 'nombre apellido'
     }
-  ).then(function(result) {
+  },
+  setup_future_usage: 'off_session'
+}).then(function(result) {
     console.log(result);
     if (result.error) {
       // Display error.message in your UI.
@@ -225,7 +223,7 @@ cardButton3d.addEventListener('click', function(ev) {
       // The setup has succeeded. Display a success message.
       console.log(result['paymentIntent']["payment_method"]);
       
-
+	
       alert('todo bien!!');
 
     }
