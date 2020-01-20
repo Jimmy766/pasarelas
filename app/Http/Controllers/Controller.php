@@ -175,12 +175,17 @@ class Controller extends BaseController
     {
         // se carga la credencial stripe
         Stripe::setApiKey('sk_test_b5uMiopp4vk8X1jxsLThvQGA007gdk00tt');
-       
-	   
+		
+		
+		$cliente=Customer::create();
+		$c=new Cliente();
+        $c->token=$cliente->id;
+        $c->save();
 	    $intent = \Stripe\PaymentIntent::create([
 			'amount' => 1200,
 			'currency' => 'usd',
-			
+			'customer'=>$c->token,
+			'setup_future_usage'=>'off_session'
 		]);
         return response()->json($intent);
     }
@@ -218,9 +223,9 @@ class Controller extends BaseController
 		
         $m=PaymentMethod::all([
             'customer' => $cliente->token,
-            'type' => 'card',
+            'type'=>'card'
           ]);
-		
+		//return response()->json(count($m['data']));
         $metodo=$m['data'][0]->id;
         $monto=$request->input('monto');
 
@@ -253,6 +258,7 @@ class Controller extends BaseController
           }
         // logica despues del pago ...
     }
+	
     public function hooks(Request $request)
     {
         Stripe::setApiKey('sk_test_b5uMiopp4vk8X1jxsLThvQGA007gdk00tt');
@@ -267,18 +273,27 @@ class Controller extends BaseController
                 $monto=$paymentIntent['amount']; // obtiene el monto del pago pero en formato entero ej. 10$ es  1000
                 $transaccion=$paymentIntent['charges']['data'][0]['id']; // obtiene el id de la transaccion
 				
-				if($paymentIntent['customer']!=null)
-					return response()->json($paymentIntent);
-				
-				$cliente=\Stripe\Customer::create([
-				  'payment_method' => $paymentIntent['payment_method']
-				]);
-				
+				if($paymentIntent['customer']!=null){
 					
+					$m=PaymentMethod::all([
+						'customer' => $paymentIntent['customer'],
+						'type'=>'card'
+					  ]);
+					if(count($m['data'])>0)
+						return response()->json($paymentIntent);
+					$payment_method = \Stripe\PaymentMethod::retrieve(
+					  $paymentIntent['charges']['data'][0]['payment_method']
+					);
+					$payment_method->attach([
+					  'customer' => $paymentIntent['customer'],
+					]);	
+					// $c=Cliente::find(1);
+					// $c->token=$cliente->id;
+					return response()->json($paymentIntent);
+				}
 				
-				$c=new Cliente();
-				$c->token=$cliente->id;
-				$c->save();
+				
+				
                 return response()->json($paymentIntent);
                 break;
             case 'payment_intent.payment_failed':

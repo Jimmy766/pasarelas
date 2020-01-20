@@ -222,9 +222,12 @@ cardButton3d.addEventListener('click', function(ev) {
     } else {
       // The setup has succeeded. Display a success message.
       console.log(result['paymentIntent']["payment_method"]);
-      
+      // $.post('{{ route('api.guardarToken') }}', function (response) {
+              // console.log(response);
+            // }, 'json');
 	
       alert('todo bien!!');
+	  window.location.reload() // recarga la web cuando se paga para volver a generar los clientsecret desde el servidor
 
     }
   });
