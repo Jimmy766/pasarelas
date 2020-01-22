@@ -23,14 +23,19 @@
         <button id="enviar">Simular pago recurrente</button>
         <br>
         <br>
-        <div id="paypal-button"></div>
+		<div id="evento">
+        <div id="paypal-button"></div></div>
         <br>
         <br>
+		
         <div id="card-element"></div>
-        <button id="card-button" disabled>Stripe Inicial</button>
+		<button id="card-button" disabled>Stripe Inicial</button>
+		
+		
+        
 		<br>
 		<br>
-        <button id="card-button3d">Stripe Inicial 3D Secure</button>
+        <button id="card-button3d"> Stripe Inicial 3D Secure</button>
 
         <br>
         <br>
@@ -58,6 +63,9 @@
               
             }, 'json');
           });
+		  
+		 
+		  
           // Create a client.
 var client=braintree.client.create({
   
@@ -84,11 +92,39 @@ var client=braintree.client.create({
       console.error('Error creating PayPal Checkout:', paypalCheckoutErr);
       return;
     }
-
+	
     // Set up PayPal with the checkout.js library
     paypal.Button.render({
       env: 'sandbox', // or 'sandbox'
-
+		// Called when page displays
+  validate: function(actions) {
+    console.log("validate called");
+    actions.disable(); // desactiva el flujo desde el inicio
+    paypalActions = actions; // se guarda la variable para usarla fuera de contexto
+	
+	$('#valor').change(function(){ // si input cambia de valor
+		if(parseFloat($("#valor").val(),10)>9){ // muestra mensaje si no esta entre el minimo
+			  paypalActions.enable();
+		 }else{
+			  
+			  paypalActions.disable();
+			  alert('Debe introducir un valor mayor o igual a 10');
+		 }
+	});
+  },
+  // evento click del boton de paypal
+	  onClick: function() {
+		// si al momento de hacer click hay un valor fuera del minimo muestra un mensaje
+      if(parseFloat($("#valor").val(),10)>9){ //
+		  paypalActions.enable();
+	  }else{
+		  
+		  paypalActions.disable();
+		  alert('Debe introducir un valor mayor o igual a 10');
+	  }
+	  
+      
+    },
       payment: function () {
         return paypalCheckoutInstance.createPayment({
           flow: 'vault',
@@ -135,6 +171,7 @@ var client=braintree.client.create({
       // The PayPal button will be rendered in an html element with the id
       // `paypal-button`. This function will be called when the PayPal button
       // is set up and ready to be used.
+	  
     });
 
   });
@@ -202,36 +239,46 @@ cardButton.addEventListener('click', function(ev) {
     }
   });
 });
-
 cardButton3d.addEventListener('click', function(ev) {
-
-  stripe.confirmCardPayment(clientSecret3d, {
-  payment_method: {
-    card: cardElement,
-    billing_details: {
-      name: 'nombre apellido'
-    }
-  },
-  setup_future_usage: 'off_session'
-}).then(function(result) {
-    console.log(result);
-    if (result.error) {
-      // Display error.message in your UI.
-      alert('algo paso!');
-
-    } else {
-      // The setup has succeeded. Display a success message.
-      console.log(result['paymentIntent']["payment_method"]);
-      // $.post('{{ route('api.guardarToken') }}', function (response) {
-              // console.log(response);
-            // }, 'json');
+	ev.preventDefault(); // desactivamos el comportamiento del boton, porque stripe le metio el flujo anteriormente
 	
-      alert('todo bien!!');
-	  window.location.reload() // recarga la web cuando se paga para volver a generar los clientsecret desde el servidor
+	
+  if(parseFloat($("#valorStripe").val()*1,10)<10){ // muestra mensaje si no esta entre el minimo
+		console.log('prevent');
+	alert('Debe introducir un valor mayor o igual a 10');
+		  return; // sale del flujo
+	 }else{// de lo contrario , sigue el flujo
+	
+		  stripe.confirmCardPayment(clientSecret3d, {
+		  payment_method: {
+			card: cardElement,
+			billing_details: {
+			  name: 'nombre apellido'
+			}
+		  },
+		  setup_future_usage: 'off_session'
+		}).then(function(result) {
+			console.log(result);
+			if (result.error) {
+			  // Display error.message in your UI.
+			  alert('algo paso!');
 
-    }
-  });
+			} else {
+			  // The setup has succeeded. Display a success message.
+			  console.log(result['paymentIntent']["payment_method"]);
+			  // $.post('{{ route('api.guardarToken') }}', function (response) {
+					  // console.log(response);
+					// }, 'json');
+			
+			  alert('todo bien!!');
+			  window.location.reload() // recarga la web cuando se paga para volver a generar los clientsecret desde el servidor
+
+			}
+		  });
+	 }
 });
+
+
         </script>
       </body>
 </html>

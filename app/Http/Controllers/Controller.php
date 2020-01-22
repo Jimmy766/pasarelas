@@ -258,7 +258,16 @@ class Controller extends BaseController
           }
         // logica despues del pago ...
     }
-	
+	public function cancelar(){
+		Stripe::setApiKey('sk_test_b5uMiopp4vk8X1jxsLThvQGA007gdk00tt');
+
+		// To create a PaymentIntent, see our guide at: https://stripe.com/docs/payments/payment-intents/creating-payment-intents#creating-for-automatic
+		$payment_intent = \Stripe\PaymentIntent::retrieve(
+		  'pi_1G3AeWDvuTemzSW4ThzmBijM'
+		);
+		$payment_intent->cancel();
+		return response()->json($payment_intent);
+	}
     public function hooks(Request $request)
     {
         Stripe::setApiKey('sk_test_b5uMiopp4vk8X1jxsLThvQGA007gdk00tt');
