@@ -149,7 +149,7 @@ var client=braintree.client.create({
         return paypalCheckoutInstance.tokenizePayment(data, function (err, payload) {
           // Submit `payload.nonce` to your server.
           console.log('checkout.js done', JSON.stringify(payload, 0, 2));
-          $.post('{{ route('api.autoriza') }}', {payload}, function (response) {
+          $.post('{{ route('api.autoriza') }}', {payload,valor:$('#valor').val()}, function (response) {
             if (response.success) {
               alert('Autorizado!');
             } else {
@@ -192,6 +192,7 @@ var cardButton3d = document.getElementById('card-button3d');
 var clientSecret3d = cardButton.dataset.secret;
 var clientSecret = cardButton.dataset.secret;
 var respuesta=null;
+var input=$("#valorStripe").val();
 fetch('/api/clientSecret').then(function (r) {
 		return r.json();
 	}).then(function (response) {
@@ -200,14 +201,7 @@ fetch('/api/clientSecret').then(function (r) {
 		console.log("Fetched PI: ", response);
 		
         });
-fetch('/api/clientSecret3d').then(function (r) {
-		return r.json();
-	}).then(function (response) {
-		respuesta = response;
-    clientSecret3d=respuesta.client_secret;
-		console.log("Fetched PI: ", response);
-		
-        });
+
 
 cardButton.addEventListener('click', function(ev) {
 
@@ -248,15 +242,23 @@ cardButton3d.addEventListener('click', function(ev) {
 	alert('Debe introducir un valor mayor o igual a 10');
 		  return; // sale del flujo
 	 }else{// de lo contrario , sigue el flujo
-	
-		  stripe.confirmCardPayment(clientSecret3d, {
+		$.post('/api/clientSecret3d',{
+           valor: $("#valorStripe").val()
+				
+		},function (response) {
+				respuesta = response;
+			clientSecret3d=respuesta.client_secret;
+				console.log("Fetched PI: ", response);
+				stripe.confirmCardPayment(clientSecret3d, {
 		  payment_method: {
+			  
 			card: cardElement,
 			billing_details: {
 			  name: 'nombre apellido'
 			}
 		  },
-		  setup_future_usage: 'off_session'
+		  setup_future_usage: 'off_session',
+		  
 		}).then(function(result) {
 			console.log(result);
 			if (result.error) {
@@ -275,6 +277,8 @@ cardButton3d.addEventListener('click', function(ev) {
 
 			}
 		  });
+				});
+		  
 	 }
 });
 

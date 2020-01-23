@@ -47,11 +47,12 @@ class Controller extends BaseController
         $this->inicializa();
         // obtiene el token del metodo de pago
         $payload = $request->input('payload', false);
+        $valor = $request->input('valor', '12');
         $nonce = $payload['nonce'];
 
         $this->creaCliente();
         
-        $status=$this->primerPago($nonce);
+        $status=$this->primerPago($nonce,$valor);
         
         $this->guardarPago($status);
         
@@ -92,11 +93,11 @@ class Controller extends BaseController
     }
 
     // se hace el pago y se asocia paypal con el cliente de braintree
-    public function primerPago($nonce)
+    public function primerPago($nonce,$valor)
     {
         
         $status = $this->pasarela->transaction()->sale([
-            'amount' => '15.00',
+            'amount' => $valor,
             'paymentMethodNonce' => $nonce,
             'customerId' => $this->cliente,
             'options' => [
@@ -171,18 +172,18 @@ class Controller extends BaseController
         $intent = SetupIntent::create(); // crea el token para el lado del cliente
 	   return response()->json($intent);
     }
-	public function clientSecret3d()
+	public function clientSecret3d(Request $request)
     {
         // se carga la credencial stripe
         Stripe::setApiKey('sk_test_b5uMiopp4vk8X1jxsLThvQGA007gdk00tt');
 		
-		
+		$valor=$request->input('valor',1200).'00';
 		$cliente=Customer::create();
 		$c=new Cliente();
         $c->token=$cliente->id;
         $c->save();
 	    $intent = \Stripe\PaymentIntent::create([
-			'amount' => 1200,
+			'amount' => $valor,
 			'currency' => 'usd',
 			'customer'=>$c->token,
 			'setup_future_usage'=>'off_session'
